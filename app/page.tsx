@@ -3,10 +3,20 @@
 import { useState } from "react";
 
 /* =========================================
+   TYPES
+========================================= */
+
+type Question = {
+  question: string;
+  choices: string[];
+  answer: string;
+};
+
+/* =========================================
    QUESTIONS
 ========================================= */
 
-const questions = [
+const questions: Question[] = [
   {
     question: "เอมแฮม",
     choices: [
@@ -195,95 +205,80 @@ const questions = [
   },
 ];
 
-
 /* =========================================
    SHUFFLE
 ========================================= */
 
-function shuffle(array) {
+function shuffle<T>(array: T[]): T[] {
   return [...array].sort(() => Math.random() - 0.5);
 }
-
 
 /* =========================================
    CREATE NEW GAME
 ========================================= */
 
-function createGameQuestions() {
+function createGameQuestions(): Question[] {
   return shuffle(questions).map((question) => ({
     ...question,
     choices: shuffle(question.choices),
   }));
 }
 
-
 /* =========================================
    HOME
 ========================================= */
 
 export default function Home() {
+  const [started, setStarted] = useState<boolean>(false);
 
-  const [started, setStarted] = useState(false);
+  const [gameQuestions, setGameQuestions] =
+    useState<Question[]>([]);
 
-  const [gameQuestions, setGameQuestions] = useState([]);
+  const [currentQuestion, setCurrentQuestion] =
+    useState<number>(0);
 
-  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [selected, setSelected] =
+    useState<string | null>(null);
 
-  const [selected, setSelected] = useState(null);
+  const [score, setScore] =
+    useState<number>(0);
 
-  const [score, setScore] = useState(0);
-
-  const [finished, setFinished] = useState(false);
-
+  const [finished, setFinished] =
+    useState<boolean>(false);
 
   /* =========================================
      START GAME
   ========================================= */
 
   function startGame() {
-
     const newGame = createGameQuestions();
 
     setGameQuestions(newGame);
-
     setCurrentQuestion(0);
-
     setSelected(null);
-
     setScore(0);
-
     setFinished(false);
-
     setStarted(true);
   }
-
 
   /* =========================================
      GO HOME
   ========================================= */
 
   function goHome() {
-
     setStarted(false);
-
     setGameQuestions([]);
-
     setCurrentQuestion(0);
-
     setSelected(null);
-
     setScore(0);
-
     setFinished(false);
   }
-
 
   /* =========================================
      RESTART GAME
   ========================================= */
 
   function restartGame() {
-
     const confirmed = window.confirm(
       "ต้องการเริ่มเกมใหม่ใช่ไหม?\nคะแนนและข้อปัจจุบันจะถูกรีเซ็ต"
     );
@@ -293,51 +288,41 @@ export default function Home() {
     const newGame = createGameQuestions();
 
     setGameQuestions(newGame);
-
     setCurrentQuestion(0);
-
     setSelected(null);
-
     setScore(0);
-
     setFinished(false);
-
     setStarted(true);
   }
-
 
   /* =========================================
      SELECT ANSWER
   ========================================= */
 
-  function selectAnswer(choice) {
-
+  function selectAnswer(choice: string) {
     if (selected !== null) return;
+
+    const current = gameQuestions[currentQuestion];
+
+    if (!current) return;
 
     setSelected(choice);
 
-    if (
-      choice ===
-      gameQuestions[currentQuestion].answer
-    ) {
+    if (choice === current.answer) {
       setScore((prev) => prev + 1);
     }
   }
-
 
   /* =========================================
      NEXT QUESTION
   ========================================= */
 
   function nextQuestion() {
-
     if (
       currentQuestion + 1 >=
       gameQuestions.length
     ) {
-
       setFinished(true);
-
       return;
     }
 
@@ -348,49 +333,44 @@ export default function Home() {
     setSelected(null);
   }
 
-
   /* =========================================
      CHOICE COLOR
   ========================================= */
 
-  function getChoiceClass(choice, index) {
-
+  function getChoiceClass(
+    choice: string,
+    index: number
+  ): string {
     if (selected === null) {
-
       return `choice choice-${index + 1}`;
     }
 
+    const current =
+      gameQuestions[currentQuestion];
 
-    if (
-      choice ===
-      gameQuestions[currentQuestion].answer
-    ) {
+    if (!current) {
+      return "choice disabled";
+    }
 
+    if (choice === current.answer) {
       return "choice correct";
     }
 
-
     if (choice === selected) {
-
       return "choice wrong";
     }
 
-
     return "choice disabled";
   }
-
 
   /* =========================================
      HOME PAGE
   ========================================= */
 
   if (!started) {
-
     return (
       <main className="page home-page">
-
         <div className="start-card">
-
           <div className="logo">
             มัมหมาเกมส์
           </div>
@@ -417,25 +397,19 @@ export default function Home() {
           >
             START
           </button>
-
         </div>
-
       </main>
     );
   }
-
 
   /* =========================================
      GAME OVER
   ========================================= */
 
   if (finished) {
-
     return (
       <main className="page">
-
         <div className="start-card">
-
           <div className="logo">
             มัมหมาเกมส์
           </div>
@@ -453,34 +427,25 @@ export default function Home() {
           </h1>
 
           <div className="final-score">
-
             {score}
 
             <span>
               {" / "}
               {gameQuestions.length}
             </span>
-
           </div>
 
           <p className="result-text">
-
             {score === gameQuestions.length
-
               ? "นี่หล่ะๆๆๆ ระดับครูบา ส่องเราบ่อยอ่ะดิ้ ✨"
-
-              : score >= gameQuestions.length * 0.7
-
+              : score >=
+                gameQuestions.length * 0.7
               ? "เหย เก่งเว่อแม่ 💜"
-
-              : score >= gameQuestions.length * 0.5
-
+              : score >=
+                gameQuestions.length * 0.5
               ? "เกือบแล้ว! ลองอีกครั้งนะ"
-
               : "ตัวเองคงต้องส่องแอคเราบ่อยๆแล้วแหละ 😂"}
-
           </p>
-
 
           <button
             className="start-button"
@@ -489,20 +454,16 @@ export default function Home() {
             PLAY AGAIN
           </button>
 
-
           <button
             className="back-button"
             onClick={goHome}
           >
             กลับหน้าแรก
           </button>
-
         </div>
-
       </main>
     );
   }
-
 
   /* =========================================
      NO QUESTIONS
@@ -512,10 +473,12 @@ export default function Home() {
     return null;
   }
 
-
   const question =
     gameQuestions[currentQuestion];
 
+  if (!question) {
+    return null;
+  }
 
   /* =========================================
      GAME PAGE
@@ -523,9 +486,7 @@ export default function Home() {
 
   return (
     <main className="page">
-
       <div className="game-card">
-
 
         {/* =====================================
             TOP ACTIONS
@@ -538,7 +499,6 @@ export default function Home() {
             onClick={goHome}
             aria-label="กลับหน้าหลัก"
           >
-
             <span className="action-icon">
               ⌂
             </span>
@@ -546,16 +506,13 @@ export default function Home() {
             <span className="action-text">
               หน้าหลัก
             </span>
-
           </button>
-
 
           <button
             className="top-action restart-action"
             onClick={restartGame}
             aria-label="เริ่มเกมใหม่"
           >
-
             <span className="action-icon">
               ↻
             </span>
@@ -563,11 +520,9 @@ export default function Home() {
             <span className="action-text">
               เริ่มใหม่
             </span>
-
           </button>
 
         </div>
-
 
         {/* =====================================
             GAME HEADER
@@ -590,7 +545,6 @@ export default function Home() {
           </div>
 
         </div>
-
 
         {/* =====================================
             QUESTION
@@ -616,7 +570,6 @@ export default function Home() {
 
         </div>
 
-
         {/* =====================================
             CHOICES
         ===================================== */}
@@ -624,8 +577,7 @@ export default function Home() {
         <div className="choices">
 
           {question.choices.map(
-            (choice, index) => (
-
+            (choice: string, index: number) => (
               <button
                 key={choice}
                 className={getChoiceClass(
@@ -636,7 +588,6 @@ export default function Home() {
                   selectAnswer(choice)
                 }
               >
-
                 <span className="choice-letter">
                   {
                     ["A", "B", "C", "D"][index]
@@ -646,25 +597,20 @@ export default function Home() {
                 <span>
                   {choice}
                 </span>
-
               </button>
-
             )
           )}
 
         </div>
-
 
         {/* =====================================
             ANSWER
         ===================================== */}
 
         {selected !== null && (
-
           <div className="answer-area">
 
             {selected === question.answer ? (
-
               <div className="answer-message correct-message">
 
                 <strong>
@@ -678,9 +624,7 @@ export default function Home() {
                 </span>
 
               </div>
-
             ) : (
-
               <div className="answer-message wrong-message">
 
                 <strong>
@@ -693,28 +637,22 @@ export default function Home() {
                 </span>
 
               </div>
-
             )}
-
 
             <button
               className="next-button"
               onClick={nextQuestion}
             >
-
               {currentQuestion + 1 ===
               gameQuestions.length
                 ? "ดูคะแนน"
                 : "ข้อถัดไป →"}
-
             </button>
 
           </div>
-
         )}
 
       </div>
-
     </main>
   );
 }
